@@ -6,7 +6,7 @@ from pyrogram.enums import ChatMembersFilter
 from pyrogram.types import CallbackQuery, Message
 
 from Opus import app
-from Opus.core.call import Space
+from Opus.core.call import Signal
 from Opus.misc import db
 from Opus.utils.database import get_assistant, get_authuser_names, get_cmode
 from Opus.utils.decorators import ActualAdminCB, AdminActual, language
