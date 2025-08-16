@@ -5,7 +5,7 @@ from pyrogram.enums import ChatType
 
 import config
 from Opus import app
-from Opus.core.call import Space, autoend
+from Opus.core.call import Signal, autoend
 from Opus.utils.database import get_client, is_active_chat, is_autoend
 
 
