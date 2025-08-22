@@ -1,14 +1,19 @@
+import uvloop
+uvloop.install()
+
+
 import asyncio
 import os
 import sys
 from pyrogram import Client, errors
-from pyrogram.enums import ChatMemberStatus
+from pyrogram.enums import ChatMemberStatus, ParseMode
 
 import config
 from ..logging import LOGGER
 
 
-class Signal(Client):
+
+class Space(Client):
     def __init__(self):
         super().__init__(
             name="OpusMusic",
@@ -18,23 +23,12 @@ class Signal(Client):
             in_memory=True,
             workers=30,
             max_concurrent_transmissions=7,
+            parse_mode=ParseMode.HTML,  # Ensures safe HTML parsing
         )
         LOGGER(__name__).info("🧠 Oᴘᴜs ᴀssɪsᴛᴀɴᴛ ᴇɴɢɪɴᴇ ɪɴɪᴛɪᴀʟɪᴢᴇᴅ...")
 
-    async def _auto_restart(self):
-        interval = getattr(config, "RESTART_INTERVAL", 86400)  # fallback 24 hours
-        while True:
-            await asyncio.sleep(interval)
-            try:
-                await self.disconnect()
-                await self.start()
-                LOGGER(__name__).info("🔁 ᴀᴜᴛᴏ ʀᴇʙᴏᴏᴛ: ᴀssɪsᴛᴀɴᴛ sᴇssɪᴏɴ ʀᴇsᴛᴀʀᴛᴇᴅ")
-            except Exception as exc:
-                LOGGER(__name__).warning(f"⚠️ Aᴜᴛᴏ ʀᴇʙᴏᴏᴛ ғᴀɪʟᴇᴅ: {exc}")
-
     async def start(self):
         await super().start()
-        asyncio.create_task(self._auto_restart())
 
         me = await self.get_me()
         self.username, self.id = me.username, me.id
