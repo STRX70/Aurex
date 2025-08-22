@@ -13,7 +13,7 @@ from ..logging import LOGGER
 
 
 
-class Space(Client):
+class Signal(Client):
     def __init__(self):
         super().__init__(
             name="OpusMusic",
