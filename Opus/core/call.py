@@ -56,51 +56,56 @@ async def _clear_(chat_id):
 
 class Call(PyTgCalls):
     def __init__(self):
-        self.one = PyTgCalls(
-            Client(
-                name="AnonXAss1",
-                api_id=config.API_ID,
-                api_hash=config.API_HASH,
-                session_string=str(config.STRING1),
-            ),
-            cache_duration=100,
-        )
-        self.two = PyTgCalls(
-            Client(
-                name="AnonXAss2",
-                api_id=config.API_ID,
-                api_hash=config.API_HASH,
-                session_string=str(config.STRING2),
-            ),
-            cache_duration=100,
-        )
-        self.three = PyTgCalls(
-            Client(
-                name="AnonXAss3",
-                api_id=config.API_ID,
-                api_hash=config.API_HASH,
-                session_string=str(config.STRING3),
-            ),
-            cache_duration=100,
-        )
-        self.four = PyTgCalls(
-            Client(
-                name="AnonXAss4",
-                api_id=config.API_ID,
-                api_hash=config.API_HASH,
-                session_string=str(config.STRING4),
-            ),
-            cache_duration=100,
-        )
-        self.five = PyTgCalls(
-            Client(
-                name="AnonXAss5",
-                api_id=config.API_ID,
-                api_hash=config.API_HASH,
-                session_string=str(config.STRING5),
-            ),
-            cache_duration=100,
-        )
+        if config.STRING1:
+            self.one = PyTgCalls(
+                Client(
+                    name="AnonXAss1",
+                    api_id=config.API_ID,
+                    api_hash=config.API_HASH,
+                    session_string=str(config.STRING1),
+                ),
+                cache_duration=100,
+            )
+        if config.STRING2:
+            self.two = PyTgCalls(
+                Client(
+                    name="AnonXAss2",
+                    api_id=config.API_ID,
+                    api_hash=config.API_HASH,
+                    session_string=str(config.STRING2),
+                ),
+                cache_duration=100,
+            )
+        if config.STRING3:
+            self.three = PyTgCalls(
+                Client(
+                    name="AnonXAss3",
+                    api_id=config.API_ID,
+                    api_hash=config.API_HASH,
+                    session_string=str(config.STRING3),
+                ),
+                cache_duration=100,
+            )
+        if config.STRING4:
+            self.four = PyTgCalls(
+                Client(
+                    name="AnonXAss4",
+                    api_id=config.API_ID,
+                    api_hash=config.API_HASH,
+                    session_string=str(config.STRING4),
+                ),
+                cache_duration=100,
+            )
+        if config.STRING5:
+            self.five = PyTgCalls(
+                Client(
+                    name="AnonXAss5",
+                    api_id=config.API_ID,
+                    api_hash=config.API_HASH,
+                    session_string=str(config.STRING5),
+                ),
+                cache_duration=100,
+            )
 
     async def pause_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
@@ -187,13 +192,20 @@ class Call(PyTgCalls):
         dur = int(dur)
         played, con_seconds = speed_converter(playing[0]["played"], speed)
         duration = seconds_to_min(dur)
-        video = playing[0]["streamtype"] == "video"
-        stream = MediaStream(
-            out,
-            audio_parameters=DEFAULT_AUDIO_QUALITY,
-            video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-            video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-            additional_ffmpeg_parameters=f"-ss {played} -to {duration}",
+        stream = (
+            MediaStream(
+                out,
+                DEFAULT_AUDIO_QUALITY,
+                DEFAULT_VIDEO_QUALITY,
+                video_flags=(MediaStream.Flags.AUTO_DETECT if playing[0]["streamtype"] == "video" else MediaStream.Flags.IGNORE),
+                additional_ffmpeg_parameters=f"-ss {played} -to {duration}",
+            )
+            if playing[0]["streamtype"] == "video"
+            else MediaStream(
+                out,
+                DEFAULT_AUDIO_QUALITY,
+                additional_ffmpeg_parameters=f"-ss {played} -to {duration}",
+            )
         )
         if str(db[chat_id][0]["file"]) == str(file_path):
             await assistant.change_stream(chat_id, stream)
@@ -232,12 +244,18 @@ class Call(PyTgCalls):
         image: Union[bool, str] = None,
     ):
         assistant = await group_assistant(self, chat_id)
-        stream = MediaStream(
-            link,
-            audio_parameters=DEFAULT_AUDIO_QUALITY,
-            video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-            video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-        )
+        if video:
+            stream = MediaStream(
+                link,
+                DEFAULT_AUDIO_QUALITY,
+                DEFAULT_VIDEO_QUALITY,
+                video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+            )
+        else:
+            stream = MediaStream(
+                link, 
+                DEFAULT_AUDIO_QUALITY,
+            )
         await assistant.change_stream(
             chat_id,
             stream,
@@ -245,13 +263,20 @@ class Call(PyTgCalls):
 
     async def seek_stream(self, chat_id, file_path, to_seek, duration, mode):
         assistant = await group_assistant(self, chat_id)
-        video = mode == "video"
-        stream = MediaStream(
-            file_path,
-            audio_parameters=DEFAULT_AUDIO_QUALITY,
-            video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-            video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-            additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
+        stream = (
+            MediaStream(
+                file_path,
+                DEFAULT_AUDIO_QUALITY,
+                DEFAULT_VIDEO_QUALITY,
+                video_flags=(MediaStream.Flags.AUTO_DETECT if mode == "video" else MediaStream.Flags.IGNORE),
+                additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
+            )
+            if mode == "video"
+            else MediaStream(
+                file_path,
+                DEFAULT_AUDIO_QUALITY,
+                additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
+            )
         )
         await assistant.change_stream(chat_id, stream)
 
@@ -259,7 +284,7 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, config.LOGGER_ID)
         await assistant.join_group_call(
             config.LOGGER_ID,
-            MediaStream(link, audio_parameters=ELSE_AUDIO_QUALITY),
+            MediaStream(link, ELSE_AUDIO_QUALITY),
         )
         await asyncio.sleep(0.2)
         await assistant.leave_group_call(config.LOGGER_ID)
@@ -275,12 +300,27 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, chat_id)
         language = await get_lang(chat_id)
         _ = get_string(language)
-        stream = MediaStream(
-            link,
-            audio_parameters=DEFAULT_AUDIO_QUALITY,
-            video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-            video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-        )
+        if video:
+            stream = MediaStream(
+                link,
+                DEFAULT_AUDIO_QUALITY,
+                DEFAULT_VIDEO_QUALITY,
+                video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+            )
+        else:
+            stream = (
+                MediaStream(
+                    link,
+                    DEFAULT_AUDIO_QUALITY,
+                    DEFAULT_VIDEO_QUALITY,
+                    video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                )
+                if video
+                else MediaStream(
+                    link, 
+                    DEFAULT_AUDIO_QUALITY,
+                )
+            )
         try:
             await assistant.join_group_call(
                 chat_id,
@@ -300,7 +340,7 @@ class Call(PyTgCalls):
             counter[chat_id] = {}
             users = len(await assistant.get_participants(chat_id))
             if users == 1:
-                autoend[chat_id] = datetime.now() + timedelta(minutes=1)
+                autoend[chat_id] = datetime.now() + timedelta(minutes=5)
 
     async def change_stream(self, client, chat_id):
         check = db.get(chat_id)
@@ -345,12 +385,18 @@ class Call(PyTgCalls):
                         original_chat_id,
                         text=_["call_6"],
                     )
-                stream = MediaStream(
-                    link,
-                    audio_parameters=DEFAULT_AUDIO_QUALITY,
-                    video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-                    video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-                )
+                if video:
+                    stream = MediaStream(
+                        link,
+                        DEFAULT_AUDIO_QUALITY,
+                        DEFAULT_VIDEO_QUALITY,
+                        video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                    )
+                else:
+                    stream = MediaStream(
+                        link,
+                        DEFAULT_AUDIO_QUALITY,
+                    )
                 try:
                     await client.change_stream(chat_id, stream)
                 except Exception:
@@ -386,12 +432,18 @@ class Call(PyTgCalls):
                     return await mystic.edit_text(
                         _["call_6"], disable_web_page_preview=True
                     )
-                stream = MediaStream(
-                    file_path,
-                    audio_parameters=DEFAULT_AUDIO_QUALITY,
-                    video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-                    video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-                )
+                if video:
+                    stream = MediaStream(
+                        file_path,
+                        DEFAULT_AUDIO_QUALITY,
+                        DEFAULT_VIDEO_QUALITY,
+                        video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                    )
+                else:
+                    stream = MediaStream(
+                        file_path,
+                        DEFAULT_AUDIO_QUALITY,
+                    )
                 try:
                     await client.change_stream(chat_id, stream)
                 except:
@@ -416,11 +468,18 @@ class Call(PyTgCalls):
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "stream"
             elif "index_" in queued:
-                stream = MediaStream(
-                    videoid,
-                    audio_parameters=DEFAULT_AUDIO_QUALITY,
-                    video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-                    video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                stream = (
+                    MediaStream(
+                        videoid,
+                        DEFAULT_AUDIO_QUALITY,
+                        DEFAULT_VIDEO_QUALITY,
+                        video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                    )
+                    if str(streamtype) == "video"
+                    else MediaStream(
+                        videoid, 
+                        DEFAULT_AUDIO_QUALITY,
+                    )
                 )
                 try:
                     await client.change_stream(chat_id, stream)
@@ -439,12 +498,18 @@ class Call(PyTgCalls):
                 db[chat_id][0]["mystic"] = run
                 db[chat_id][0]["markup"] = "tg"
             else:
-                stream = MediaStream(
-                    queued,
-                    audio_parameters=DEFAULT_AUDIO_QUALITY,
-                    video_parameters=DEFAULT_VIDEO_QUALITY if video else None,
-                    video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
-                )
+                if video:
+                    stream = MediaStream(
+                        queued,
+                        DEFAULT_AUDIO_QUALITY,
+                        DEFAULT_VIDEO_QUALITY,
+                        video_flags=(MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE),
+                    )
+                else:
+                    stream = MediaStream(
+                        queued,
+                        DEFAULT_AUDIO_QUALITY,
+                    )
                 try:
                     await client.change_stream(chat_id, stream)
                 except:
