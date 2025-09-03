@@ -562,59 +562,95 @@ class Call(PyTgCalls):
 
     async def ping(self):
         pings = []
-        if config.STRING1:
+        if config.STRING1 and hasattr(self, 'one'):
             pings.append(await self.one.ping)
-        if config.STRING2:
+        if config.STRING2 and hasattr(self, 'two'):
             pings.append(await self.two.ping)
-        if config.STRING3:
+        if config.STRING3 and hasattr(self, 'three'):
             pings.append(await self.three.ping)
-        if config.STRING4:
+        if config.STRING4 and hasattr(self, 'four'):
             pings.append(await self.four.ping)
-        if config.STRING5:
+        if config.STRING5 and hasattr(self, 'five'):
             pings.append(await self.five.ping)
-        return str(round(sum(pings) / len(pings), 3))
+        return str(round(sum(pings) / len(pings), 3)) if pings else "0"
 
     async def start(self):
-        LOGGER(__name__).info("Starting PyTgCalls Client...\n")
-        if config.STRING1:
+        if config.STRING1 and hasattr(self, 'one'):
             await self.one.start()
-        if config.STRING2:
+        if config.STRING2 and hasattr(self, 'two'):
             await self.two.start()
-        if config.STRING3:
+        if config.STRING3 and hasattr(self, 'three'):
             await self.three.start()
-        if config.STRING4:
+        if config.STRING4 and hasattr(self, 'four'):
             await self.four.start()
-        if config.STRING5:
+        if config.STRING5 and hasattr(self, 'five'):
             await self.five.start()
 
     async def decorators(self):
-        @self.one.on_kicked()
-        @self.two.on_kicked()
-        @self.three.on_kicked()
-        @self.four.on_kicked()
-        @self.five.on_kicked()
-        @self.one.on_closed_voice_chat()
-        @self.two.on_closed_voice_chat()
-        @self.three.on_closed_voice_chat()
-        @self.four.on_closed_voice_chat()
-        @self.five.on_closed_voice_chat()
-        @self.one.on_left()
-        @self.two.on_left()
-        @self.three.on_left()
-        @self.four.on_left()
-        @self.five.on_left()
-        async def stream_services_handler(_, chat_id: int):
-            await self.stop_stream(chat_id)
+        if config.STRING1 and hasattr(self, 'one'):
+            @self.one.on_kicked()
+            @self.one.on_closed_voice_chat()
+            @self.one.on_left()
+            async def stream_services_handler1(_, chat_id: int):
+                await self.stop_stream(chat_id)
 
-        @self.one.on_stream_end()
-        @self.two.on_stream_end()
-        @self.three.on_stream_end()
-        @self.four.on_stream_end()
-        @self.five.on_stream_end()
-        async def stream_end_handler(client, update: Update):
-            if not isinstance(update, StreamAudioEnded):
-                return
-            await self.change_stream(client, update.chat_id)
+            @self.one.on_stream_end()
+            async def stream_end_handler1(client, update: Update):
+                if not isinstance(update, StreamAudioEnded):
+                    return
+                await self.change_stream(client, update.chat_id)
+
+        if config.STRING2 and hasattr(self, 'two'):
+            @self.two.on_kicked()
+            @self.two.on_closed_voice_chat()
+            @self.two.on_left()
+            async def stream_services_handler2(_, chat_id: int):
+                await self.stop_stream(chat_id)
+
+            @self.two.on_stream_end()
+            async def stream_end_handler2(client, update: Update):
+                if not isinstance(update, StreamAudioEnded):
+                    return
+                await self.change_stream(client, update.chat_id)
+
+        if config.STRING3 and hasattr(self, 'three'):
+            @self.three.on_kicked()
+            @self.three.on_closed_voice_chat()
+            @self.three.on_left()
+            async def stream_services_handler3(_, chat_id: int):
+                await self.stop_stream(chat_id)
+
+            @self.three.on_stream_end()
+            async def stream_end_handler3(client, update: Update):
+                if not isinstance(update, StreamAudioEnded):
+                    return
+                await self.change_stream(client, update.chat_id)
+
+        if config.STRING4 and hasattr(self, 'four'):
+            @self.four.on_kicked()
+            @self.four.on_closed_voice_chat()
+            @self.four.on_left()
+            async def stream_services_handler4(_, chat_id: int):
+                await self.stop_stream(chat_id)
+
+            @self.four.on_stream_end()
+            async def stream_end_handler4(client, update: Update):
+                if not isinstance(update, StreamAudioEnded):
+                    return
+                await self.change_stream(client, update.chat_id)
+
+        if config.STRING5 and hasattr(self, 'five'):
+            @self.five.on_kicked()
+            @self.five.on_closed_voice_chat()
+            @self.five.on_left()
+            async def stream_services_handler5(_, chat_id: int):
+                await self.stop_stream(chat_id)
+
+            @self.five.on_stream_end()
+            async def stream_end_handler5(client, update: Update):
+                if not isinstance(update, StreamAudioEnded):
+                    return
+                await self.change_stream(client, update.chat_id)
 
 
 Signal = Call()
