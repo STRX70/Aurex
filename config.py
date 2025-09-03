@@ -15,7 +15,7 @@ MONGO_DB_URI = getenv("MONGO_DB_URI")
 
 OWNER_ID = int(getenv("OWNER_ID") or "7639428220")
 
-LOGGER_ID = int(getenv("LOGGER_ID", None)
+LOGGER_ID = int(getenv("LOGGER_ID", or "-1002139499282")
 
 HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
 HEROKU_API_KEY = getenv("HEROKU_API_KEY")
