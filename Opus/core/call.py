@@ -154,6 +154,7 @@ class Call(PyTgCalls):
         except:
             pass
 
+
     async def speedup_stream(self, chat_id: int, file_path, speed, playing):
         assistant = await group_assistant(self, chat_id)
         if str(speed) != "1.0":
@@ -195,16 +196,16 @@ class Call(PyTgCalls):
         stream = (
             MediaStream(
                 out,
-                DEFAULT_AUDIO_QUALITY,
-                DEFAULT_VIDEO_QUALITY,
-                video_flags=(MediaStream.Flags.AUTO_DETECT if playing[0]["streamtype"] == "video" else MediaStream.Flags.IGNORE),
-                additional_ffmpeg_parameters=f"-ss {played} -to {duration}",
+                audio_parameters=DEFAULT_AUDIO_QUALITY,
+                video_parameters=DEFAULT_VIDEO_QUALITY,
+                ffmpeg_parameters=f"-ss {played} -to {duration}",
             )
             if playing[0]["streamtype"] == "video"
             else MediaStream(
                 out,
-                DEFAULT_AUDIO_QUALITY,
-                additional_ffmpeg_parameters=f"-ss {played} -to {duration}",
+                audio_parameters=ELSE_AUDIO_QUALITY,
+                ffmpeg_parameters=f"-ss {played} -to {duration}",
+                video_flags=MediaStream.IGNORE,
             )
         )
         if str(db[chat_id][0]["file"]) == str(file_path):
@@ -268,18 +269,17 @@ class Call(PyTgCalls):
                 file_path,
                 DEFAULT_AUDIO_QUALITY,
                 DEFAULT_VIDEO_QUALITY,
-                video_flags=(MediaStream.Flags.AUTO_DETECT if mode == "video" else MediaStream.Flags.IGNORE),
                 additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
             )
             if mode == "video"
             else MediaStream(
                 file_path,
-                DEFAULT_AUDIO_QUALITY,
+                ELSE_AUDIO_QUALITY,
                 additional_ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
             )
         )
         await assistant.change_stream(chat_id, stream)
-
+    
     async def stream_call(self, link):
         assistant = await group_assistant(self, config.LOGGER_ID)
         await assistant.join_group_call(
