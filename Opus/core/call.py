@@ -63,7 +63,7 @@ class Call(PyTgCalls):
                 api_hash=config.API_HASH,
                 session_string=str(config.STRING1),
             ),
-            no_updates=False,
+            cache_duration=100,
         )
         self.two = PyTgCalls(
             Client(
@@ -72,7 +72,7 @@ class Call(PyTgCalls):
                 api_hash=config.API_HASH,
                 session_string=str(config.STRING2),
             ),
-            no_updates=False,
+            cache_duration=100,
         )
         self.three = PyTgCalls(
             Client(
@@ -81,7 +81,7 @@ class Call(PyTgCalls):
                 api_hash=config.API_HASH,
                 session_string=str(config.STRING3),
             ),
-            no_updates=True,
+            cache_duration=100,
         )
         self.four = PyTgCalls(
             Client(
@@ -90,7 +90,7 @@ class Call(PyTgCalls):
                 api_hash=config.API_HASH,
                 session_string=str(config.STRING4),
             ),
-            no_updates=True,
+            cache_duration=100,
         )
         self.five = PyTgCalls(
             Client(
@@ -99,7 +99,7 @@ class Call(PyTgCalls):
                 api_hash=config.API_HASH,
                 session_string=str(config.STRING5),
             ),
-            no_updates=True,
+            cache_duration=100,
         )
 
     async def pause_stream(self, chat_id: int):
