@@ -338,14 +338,12 @@ class Call(PyTgCalls):
         for attempt in range(retries):
             try:
                 await client.change_stream(chat_id, stream)
+                LOGGER(__name__).info(f"Stream changed successfully in chat {chat_id} on attempt {attempt + 1}")
                 return True
-        except Exception as e:
-            if attempt < retries - 1:
-                continue  # retry again
-            else:
-                # log or handle final failure
-                print(f"Stream attempt failed for chat {chat_id}: {e}")
-                return False
+            except Exception as e:
+                LOGGER(__name__).error(f"Stream attempt {attempt + 1} failed in chat {chat_id}: {str(e)}")
+                await asyncio.sleep(1)
+        return False
 
     async def check_autoend(self, chat_id):
         if await is_autoend() and chat_id in autoend:
