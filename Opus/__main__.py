@@ -1,3 +1,5 @@
+# Powered By Team Opus
+
 import asyncio
 import importlib
 
