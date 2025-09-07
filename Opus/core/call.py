@@ -339,8 +339,6 @@ class Call(PyTgCalls):
             try:
                 await client.change_stream(chat_id, stream)
                 return True
-            except Exception as e:
-        return False
 
     async def check_autoend(self, chat_id):
         if await is_autoend() and chat_id in autoend:
