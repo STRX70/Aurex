@@ -451,7 +451,7 @@ class Call(PyTgCalls):
                     if video:
                         stream = MediaStream(
                             file_path,
-                            audio_parameters=DEFAULT_AQ
+                            audio_parameters=DEFAULT_AQ,
                             video_parameters=DEFAULT_VQ,
                         )
                     else:
