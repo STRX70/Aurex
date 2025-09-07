@@ -108,7 +108,6 @@ class YouTubeAPI:
         self.status = "https://www.youtube.com/oembed?url="
         self.listbase = "https://youtube.com/playlist?list="
         self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-        # Precompile regex for faster URL processing
         self.url_regex = re.compile(self.regex)
 
     async def exists(self, link: str, videoid: Union[bool, str] = None):
@@ -133,7 +132,7 @@ class YouTubeAPI:
 
     async def _fetch_video_info(self, link: str, limit: int = 1):
         if "&" in link:
-            link = link.split("&")[0]
+            link = link.split("&")
         results = VideosSearch(link, limit=limit)
         return (await results.next())["result"]
 
@@ -143,7 +142,7 @@ class YouTubeAPI:
         for result in await self._fetch_video_info(link):
             title = result["title"]
             duration_min = result["duration"]
-            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+            thumbnail = result["thumbnails"]["url"].split("?")
             vidid = result["id"]
             duration_sec = 0 if duration_min == "None" else int(time_to_seconds(duration_min))
             return title, duration_min, duration_sec, thumbnail, vidid
@@ -167,20 +166,23 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         for result in await self._fetch_video_info(link):
-            return result["thumbnails"][0]["url"].split("?")[0]
+            return result["thumbnails"]["url"].split("?")
         return None
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
             link = self.base + link
         if "&" in link:
-            link = link.split("&")[0]
+            link = link.split("&")
         cookie_file = await cookie_txt_file()
+        # Best 480p or lower, fallback to best if not available[1][5][11]
         ydl_opts = {
-            "format": "best[height<=?720][width<=?1280]",
+            "format": "(bestvideo[height<=?480][ext=mp4]/bestvideo[height<=?480]/bestvideo)+bestaudio/best",
             "quiet": True,
             "cookiefile": cookie_file,
             "no_warnings": True,
+            "merge_output_format": "mp4",
+            "prefer_ffmpeg": True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(link, download=False)
@@ -190,7 +192,7 @@ class YouTubeAPI:
         if videoid:
             link = self.listbase + link
         if "&" in link:
-            link = link.split("&")[0]
+            link = link.split("&")
         cookie_file = await cookie_txt_file()
         cmd = f"yt-dlp -i --get-id --flat-playlist --cookies {cookie_file} --playlist-end {limit} --skip-download {link}"
         result = await shell_cmd(cmd)
@@ -208,7 +210,7 @@ class YouTubeAPI:
                 "link": result["link"],
                 "vidid": result["id"],
                 "duration_min": result["duration"],
-                "thumb": result["thumbnails"][0]["url"].split("?")[0],
+                "thumb": result["thumbnails"]["url"].split("?"),
             }, result["id"]
         return {}, None
 
@@ -216,7 +218,7 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         if "&" in link:
-            link = link.split("&")[0]
+            link = link.split("&")
         cookie_file = await cookie_txt_file()
         ydl_opts = {"quiet": True, "cookiefile": cookie_file}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -242,7 +244,7 @@ class YouTubeAPI:
         result = await self._fetch_video_info(link, limit=10)
         if query_type < len(result):
             r = result[query_type]
-            return r["title"], r["duration"], r["thumbnails"][0]["url"].split("?")[0], r["id"]
+            return r["title"], r["duration"], r["thumbnails"]["url"].split("?"), r["id"]
         return None, None, None, None
 
     async def download(
@@ -259,14 +261,15 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         if "&" in link:
-            link = link.split("&")[0]
-        
+            link = link.split("&")
+
         cookie_file = await cookie_txt_file()
         loop = asyncio.get_running_loop()
 
         def audio_dl():
+            # Fast webm audio[4]
             ydl_optssx = {
-                "format": "bestaudio/best",
+                "format": "bestaudio[ext=webm]/bestaudio/best",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
                 "geo_bypass": True,
                 "nocheckcertificate": True,
@@ -276,29 +279,39 @@ class YouTubeAPI:
             }
             with yt_dlp.YoutubeDL(ydl_optssx) as ydl:
                 info = ydl.extract_info(link, download=False)
-                xyz = os.path.join("downloads", f"{info['id']}.{info['ext']}")
+                xyz = os.path.join("downloads", f"{info['id']}.{info.get('ext', 'webm')}")
                 if os.path.exists(xyz):
                     return xyz
                 ydl.download([link])
-                return xyz
+                # Fallback: check for any matching file
+                possible_files = glob.glob(f"downloads/{info['id']}.*")
+                if possible_files:
+                    return possible_files
+                return None
 
         def video_dl():
+            # Best 480p video + best audio, fallback to best available[1][5][11]
             ydl_optssx = {
-                "format": "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])",
+                "format": "(bestvideo[height<=?480][ext=mp4]/bestvideo[height<=?480]/bestvideo)+bestaudio/best",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
                 "cookiefile": cookie_file,
                 "no_warnings": True,
+                "prefer_ffmpeg": True,
+                "merge_output_format": "mp4",
             }
             with yt_dlp.YoutubeDL(ydl_optssx) as ydl:
                 info = ydl.extract_info(link, download=False)
-                xyz = os.path.join("downloads", f"{info['id']}.{info['ext']}")
+                xyz = os.path.join("downloads", f"{info['id']}.{info.get('ext', 'mp4')}")
                 if os.path.exists(xyz):
                     return xyz
                 ydl.download([link])
-                return xyz
+                possible_files = glob.glob(f"downloads/{info['id']}.*")
+                if possible_files:
+                    return possible_files
+                return None
 
         def song_video_dl():
             formats = f"{format_id}+140"
