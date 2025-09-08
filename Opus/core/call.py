@@ -47,7 +47,7 @@ db_locks = {}
 loop = asyncio.get_event_loop_policy().get_event_loop()
 
 DEFAULT_AQ = AudioQuality.STUDIO
-DEFAULT_VQ = VideoQuality.SD_480p
+DEFAULT_VQ = VideoQuality.HD_720p
 ELSE_AQ = AudioQuality.HIGH
 
 
@@ -138,7 +138,10 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, chat_id)
         try:
             await _clear_(chat_id)
-            await assistant.leave_group_call(chat_id)
+            try:
+                await assistant.leave_group_call(chat_id)
+            except NoActiveGroupCall:
+                pass
         except Exception as e:
             LOGGER(__name__).error(f"Error stopping stream for chat {chat_id}: {str(e)}")
 
@@ -146,6 +149,8 @@ class Call(PyTgCalls):
         for client in [self.one, self.two, self.three, self.four, self.five]:
             try:
                 await client.leave_group_call(chat_id)
+            except NoActiveGroupCall:
+                pass
             except Exception as e:
                 LOGGER(__name__).error(f"Error leaving VC for chat {chat_id}: {str(e)}")
         await _clear_(chat_id)
@@ -222,16 +227,19 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, chat_id)
         try:
             check = db.get(chat_id)
-            check.pop(0)
+            if check:
+                check.pop(0)
         except:
             pass
         await remove_active_video_chat(chat_id)
         await remove_active_chat(chat_id)
         try:
             await assistant.leave_group_call(chat_id)
+        except NoActiveGroupCall:
+            pass
         except Exception as e:
             LOGGER(__name__).error(f"Error force stopping stream for chat {chat_id}: {str(e)}")
-
+    
     async def skip_stream(
         self,
         chat_id: int,
@@ -365,20 +373,45 @@ class Call(PyTgCalls):
             popped = None
             loop = await get_loop(chat_id)
             try:
+                if not check or len(check) == 0:
+                    # If queue empty or none, clear and leave call safely there was main  instance failing 
+                    await _clear_(chat_id)
+                    try:
+                        await client.leave_group_call(chat_id)
+                    except NoActiveGroupCall:
+                        pass
+                    return
                 if loop == 0:
                     popped = check.pop(0)
                 else:
                     loop = loop - 1
                     await set_loop(chat_id, loop)
                 await auto_clean(popped)
-                if not check:
+                if not check or len(check) == 0:
                     await _clear_(chat_id)
-                    await client.leave_group_call(chat_id)
-            except:
+                    try:
+                        await client.leave_group_call(chat_id)
+                    except NoActiveGroupCall:
+                        pass
+                    return
+            except Exception:
                 await _clear_(chat_id)
-                await client.leave_group_call(chat_id)
+                try:
+                    await client.leave_group_call(chat_id)
+                except NoActiveGroupCall:
+                    pass
+                return
             else:
-                queued = check[0]["file"]
+                # Safe to access check[0]
+                queued = check[0].get("file")
+                if not queued:
+                    await _clear_(chat_id)
+                    try:
+                        await client.leave_group_call(chat_id)
+                    except NoActiveGroupCall:
+                        pass
+                    return
+
                 language = await get_lang(chat_id)
                 _ = get_string(language)
                 title = (check[0]["title"]).title()
@@ -444,7 +477,7 @@ class Call(PyTgCalls):
                             await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
                             await _clear_(chat_id)
                             return
-                    except Exception as e:
+                    except Exception:
                         await mystic.edit_text(_["call_6"], disable_web_page_preview=True)
                         await _clear_(chat_id)
                         return
@@ -627,7 +660,10 @@ class Call(PyTgCalls):
             await self.change_stream(client, chat_id)
             if not db.get(chat_id):
                 await _clear_(chat_id)
-                await client.leave_group_call(chat_id)
+                try:
+                    await client.leave_group_call(chat_id)
+                except NoActiveGroupCall:
+                    pass
 
 
 Signal = Call()
