@@ -18,7 +18,6 @@ from Opus.utils.formatters import time_to_seconds
 from Opus import LOGGER
 
 # Ensuring logger is an instance, not a function
-logger = LOGGER if not callable(LOGGER) else LOGGER()
 
 _cookie_cache = None
 
