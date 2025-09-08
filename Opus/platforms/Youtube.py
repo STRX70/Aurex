@@ -220,7 +220,7 @@ class YouTubeAPI:
         logger.debug(f"Starting video URL extraction for {link}")
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp",
-            "--cookies", await cookie_txt_file(),
+            "--cookies", await cookie_file,
             "-g",
             "-f", "bestvideo[height<=480]+bestaudio/best/best[height<=480]/best[height<=720]",
             f"{link}",
@@ -243,7 +243,7 @@ class YouTubeAPI:
             link = link.split("&")[0]
         logger.debug(f"Fetching playlist items for {link} with limit {limit}")
         playlist = await shell_cmd(
-            f"yt-dlp -i --get-id --flat-playlist --cookies {await cookie_txt_file()} --playlist-end {limit} --skip-download {link}"
+            f"yt-dlp -i --get-id --flat-playlist --cookies {await cookie_file} --playlist-end {limit} --skip-download {link}"
         )
         result = [x for x in playlist.split("\n") if x]
         logger.debug(f"Playlist fetched with {len(result)} items")
@@ -330,7 +330,7 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile": cookie_txt_file(),
+                "cookiefile": cookie_file,
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -351,7 +351,7 @@ class YouTubeAPI:
                 "geo_bypass": True,
                 "nocheckcertificate": True,
                 "quiet": True,
-                "cookiefile": cookie_txt_file(),
+                "cookiefile": cookie_file,
                 "no_warnings": True,
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
@@ -375,7 +375,7 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile": cookie_txt_file(),
+                "cookiefile": cookie_file,
                 "prefer_ffmpeg": True,
                 "merge_output_format": "mp4",
             }
@@ -393,7 +393,7 @@ class YouTubeAPI:
                 "nocheckcertificate": True,
                 "quiet": True,
                 "no_warnings": True,
-                "cookiefile": cookie_txt_file(),
+                "cookiefile": cookie_file,
                 "prefer_ffmpeg": True,
                 "postprocessors": [
                     {
@@ -414,7 +414,7 @@ class YouTubeAPI:
             return fpath
         elif songaudio:
             await loop.run_in_executor(None, song_audio_dl)
-            fpath = f"downloads/{title}.mp3"
+            fpath = f"downloads/{title}.webm"
             logger.debug(f"Song audio download finished: {fpath}")
             return fpath
         elif video:
@@ -426,7 +426,7 @@ class YouTubeAPI:
                 logger.debug("Direct video download disabled, fetching URLs")
                 proc = await asyncio.create_subprocess_exec(
                     "yt-dlp",
-                    "--cookies", await cookie_txt_file(),
+                    "--cookies", await cookie_file,
                     "-g",
                     "-f", "bestvideo[height<=480]+bestaudio/best/best[height<=480]/best[height<=720]",
                     f"{link}",
