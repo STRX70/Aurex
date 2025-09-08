@@ -15,12 +15,15 @@ from youtubesearchpython.__future__ import VideosSearch
 from Opus.utils.database import is_on_off
 from Opus.utils.formatters import time_to_seconds
 
-from Opus import LOGGER  # For logging
+from Opus import LOGGER
+
+# Ensuring logger is an instance, not a function
+logger = LOGGER if not callable(LOGGER) else LOGGER()
 
 _cookie_cache = None
 
 async def download_cookies_from_url(url):
-    LOGGER.debug(f"Attempting to download cookies from URL: {url}")
+    logger.debug(f"Attempting to download cookies from URL: {url}")
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
@@ -29,19 +32,19 @@ async def download_cookies_from_url(url):
                     temp_path = "cookies/cookies.txt"
                     with open(temp_path, 'wb') as f:
                         f.write(await response.read())
-                    LOGGER.debug(f"Cookies downloaded and saved to {temp_path}")
+                    logger.debug(f"Cookies downloaded and saved to {temp_path}")
                     return temp_path
                 else:
-                    LOGGER.error(f"Failed to download cookies: HTTP {response.status}")
+                    logger.error(f"Failed to download cookies: HTTP {response.status}")
                     return None
     except Exception as e:
-        LOGGER.error(f"Error downloading cookies: {str(e)}")
+        logger.error(f"Error downloading cookies: {str(e)}")
         return None
 
 async def cookie_txt_file():
     global _cookie_cache
     if _cookie_cache:
-        LOGGER.debug("Using cached cookie file path")
+        logger.debug("Using cached cookie file path")
         return _cookie_cache
 
     remote_url = config.API
@@ -52,24 +55,24 @@ async def cookie_txt_file():
         with open(filename, 'a') as file:
             file.write(f'Using remote cookies from: {remote_url}\n')
         _cookie_cache = local_path
-        LOGGER.debug(f"Remote cookies loaded from {remote_url}")
+        logger.debug(f"Remote cookies loaded from {remote_url}")
         return local_path
     
     folder_path = f"{os.getcwd()}/cookies"
     txt_files = glob.glob(os.path.join(folder_path, '*.txt'))
     if not txt_files:
         error_msg = "No .txt files found in the specified folder and remote download failed."
-        LOGGER.error(error_msg)
+        logger.error(error_msg)
         raise FileNotFoundError(error_msg)
     cookie_txt_file = random.choice(txt_files)
     with open(filename, 'a') as file:
         file.write(f'Fallback to local file: {cookie_txt_file}\n')
     _cookie_cache = f"cookies/{str(cookie_txt_file).split('/')[-1]}"
-    LOGGER.debug(f"Fallback to local cookie file: {_cookie_cache}")
+    logger.debug(f"Fallback to local cookie file: {_cookie_cache}")
     return _cookie_cache
 
 async def check_file_size(link):
-    LOGGER.debug(f"Checking file size for link: {link}")
+    logger.debug(f"Checking file size for link: {link}")
 
     async def get_format_info(link, cookie_file):
         ydl_opts = {"quiet": True, "cookiefile": cookie_file}
@@ -87,20 +90,20 @@ async def check_file_size(link):
     cookie_file = await cookie_txt_file()
     info = await get_format_info(link, cookie_file)
     if not info:
-        LOGGER.warning("No info found when checking file size.")
+        logger.warning("No info found when checking file size.")
         return None
     
     formats = info.get('formats', [])
     if not formats:
-        LOGGER.warning("No formats found during file size check.")
+        logger.warning("No formats found during file size check.")
         return None
     
     total_size = parse_size(formats)
-    LOGGER.debug(f"Total size of media formats: {total_size} bytes")
+    logger.debug(f"Total size of media formats: {total_size} bytes")
     return total_size
 
 async def shell_cmd(cmd):
-    LOGGER.debug(f"Executing shell command: {cmd}")
+    logger.debug(f"Executing shell command: {cmd}")
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -110,12 +113,12 @@ async def shell_cmd(cmd):
     if errorz:
         err_msg = errorz.decode("utf-8")
         if "unavailable videos are hidden" in err_msg.lower():
-            LOGGER.debug(f"Shell command returned specific error but continuing: {err_msg}")
+            logger.debug(f"Shell command returned specific error but continuing: {err_msg}")
             return out.decode("utf-8")
         else:
-            LOGGER.error(f"Shell command error: {err_msg}")
+            logger.error(f"Shell command error: {err_msg}")
             return err_msg
-    LOGGER.debug("Shell command executed successfully")
+    logger.debug("Shell command executed successfully")
     return out.decode("utf-8")
 
 class YouTubeAPI:
@@ -130,7 +133,7 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         exists = bool(re.search(self.regex, link))
-        LOGGER.debug(f"Checked existence for link {link}: {exists}")
+        logger.debug(f"Checked existence for link {link}: {exists}")
         return exists
 
     async def url(self, message_1: Message) -> Union[str, None]:
@@ -152,13 +155,13 @@ class YouTubeAPI:
             elif message.caption_entities:
                 for entity in message.caption_entities:
                     if entity.type == MessageEntityType.TEXT_LINK:
-                        LOGGER.debug(f"Found TEXT_LINK URL: {entity.url}")
+                        logger.debug(f"Found TEXT_LINK URL: {entity.url}")
                         return entity.url
         if offset in (None,):
-            LOGGER.debug("No URL entity found in messages")
+            logger.debug("No URL entity found in messages")
             return None
         extracted_url = text[offset : offset + length]
-        LOGGER.debug(f"Extracted URL: {extracted_url}")
+        logger.debug(f"Extracted URL: {extracted_url}")
         return extracted_url
 
     async def details(self, link: str, videoid: Union[bool, str] = None):
@@ -173,7 +176,7 @@ class YouTubeAPI:
             thumbnail = result["thumbnails"]["url"].split("?")
             vidid = result["id"]
             duration_sec = int(time_to_seconds(duration_min)) if duration_min != "None" else 0
-        LOGGER.debug(f"Fetched details: {title}, duration: {duration_min}, id: {vidid}")
+        logger.debug(f"Fetched details: {title}, duration: {duration_min}, id: {vidid}")
         return title, duration_min, duration_sec, thumbnail, vidid
 
     async def title(self, link: str, videoid: Union[bool, str] = None):
@@ -184,7 +187,7 @@ class YouTubeAPI:
         results = VideosSearch(link, limit=1)
         for result in (await results.next())["result"]:
             title = result["title"]
-        LOGGER.debug(f"Fetched title: {title}")
+        logger.debug(f"Fetched title: {title}")
         return title
 
     async def duration(self, link: str, videoid: Union[bool, str] = None):
@@ -195,7 +198,7 @@ class YouTubeAPI:
         results = VideosSearch(link, limit=1)
         for result in (await results.next())["result"]:
             duration = result["duration"]
-        LOGGER.debug(f"Fetched duration: {duration}")
+        logger.debug(f"Fetched duration: {duration}")
         return duration
 
     async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
@@ -206,7 +209,7 @@ class YouTubeAPI:
         results = VideosSearch(link, limit=1)
         for result in (await results.next())["result"]:
             thumbnail = result["thumbnails"]["url"].split("?")
-        LOGGER.debug(f"Fetched thumbnail url")
+        logger.debug(f"Fetched thumbnail url")
         return thumbnail
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
@@ -214,7 +217,7 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        LOGGER.debug(f"Starting video URL extraction for {link}")
+        logger.debug(f"Starting video URL extraction for {link}")
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp",
             "--cookies", await cookie_txt_file(),
@@ -226,11 +229,11 @@ class YouTubeAPI:
         )
         stdout, stderr = await proc.communicate()
         if stdout:
-            LOGGER.debug("Video URL extraction successful")
+            logger.debug("Video URL extraction successful")
             return 1, stdout.decode().split("\n")
         else:
             err = stderr.decode()
-            LOGGER.error(f"Video URL extraction failed: {err}")
+            logger.error(f"Video URL extraction failed: {err}")
             return 0, err
 
     async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
@@ -238,12 +241,12 @@ class YouTubeAPI:
             link = self.listbase + link
         if "&" in link:
             link = link.split("&")[0]
-        LOGGER.debug(f"Fetching playlist items for {link} with limit {limit}")
+        logger.debug(f"Fetching playlist items for {link} with limit {limit}")
         playlist = await shell_cmd(
             f"yt-dlp -i --get-id --flat-playlist --cookies {await cookie_txt_file()} --playlist-end {limit} --skip-download {link}"
         )
         result = [x for x in playlist.split("\n") if x]
-        LOGGER.debug(f"Playlist fetched with {len(result)} items")
+        logger.debug(f"Playlist fetched with {len(result)} items")
         return result
 
     async def track(self, link: str, videoid: Union[bool, str] = None):
@@ -260,7 +263,7 @@ class YouTubeAPI:
                 "duration_min": result["duration"],
                 "thumb": result["thumbnails"]["url"].split("?"),
             }
-        LOGGER.debug(f"Track details fetched for {link}")
+        logger.debug(f"Track details fetched for {link}")
         return track_details, result["id"]
 
     async def formats(self, link: str, videoid: Union[bool, str] = None):
@@ -286,7 +289,7 @@ class YouTubeAPI:
                     })
                 except Exception:
                     continue
-        LOGGER.debug(f"Fetched {len(formats_available)} formats for {link}")
+        logger.debug(f"Fetched {len(formats_available)} formats for {link}")
         return formats_available, link
 
     async def slider(self, link: str, query_type: int, videoid: Union[bool, str] = None):
@@ -300,7 +303,7 @@ class YouTubeAPI:
         duration_min = result[query_type]["duration"]
         vidid = result[query_type]["id"]
         thumbnail = result[query_type]["thumbnails"]["url"].split("?")
-        LOGGER.debug(f"Slider query fetched: {title}")
+        logger.debug(f"Slider query fetched: {title}")
         return title, duration_min, thumbnail, vidid
 
     async def download(
@@ -317,10 +320,10 @@ class YouTubeAPI:
         if videoid:
             link = self.base + link
         loop = asyncio.get_running_loop()
-        LOGGER.debug(f"Starting download for link: {link} with options video={video}, songaudio={songaudio}, songvideo={songvideo}")
+        logger.debug(f"Starting download for link: {link} with options video={video}, songaudio={songaudio}, songvideo={songvideo}")
 
         def audio_dl():
-            LOGGER.debug("Starting audio download")
+            logger.debug("Starting audio download")
             ydl_optssx = {
                 "format": "bestaudio[ext=webm]/bestaudio/best",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
@@ -334,14 +337,14 @@ class YouTubeAPI:
             info = x.extract_info(link, False)
             xyz = os.path.join("downloads", f"{info['id']}.{info['ext']}")
             if os.path.exists(xyz):
-                LOGGER.debug(f"Audio file already exists: {xyz}")
+                logger.debug(f"Audio file already exists: {xyz}")
                 return xyz
             x.download([link])
-            LOGGER.debug(f"Audio download completed: {xyz}")
+            logger.debug(f"Audio download completed: {xyz}")
             return xyz
 
         def video_dl():
-            LOGGER.debug("Starting video download")
+            logger.debug("Starting video download")
             ydl_optssx = {
                 "format": "bestvideo[height<=480]+bestaudio/best/best[height<=480]/best[height<=720]",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
@@ -355,16 +358,16 @@ class YouTubeAPI:
             info = x.extract_info(link, False)
             xyz = os.path.join("downloads", f"{info['id']}.{info['ext']}")
             if os.path.exists(xyz):
-                LOGGER.debug(f"Video file already exists: {xyz}")
+                logger.debug(f"Video file already exists: {xyz}")
                 return xyz
             x.download([link])
-            LOGGER.debug(f"Video download completed: {xyz}")
+            logger.debug(f"Video download completed: {xyz}")
             return xyz
 
         def song_video_dl():
             formats = f"{format_id}+140"
             fpath = f"downloads/{title}"
-            LOGGER.debug(f"Starting song + video download with format {formats} to {fpath}")
+            logger.debug(f"Starting song + video download with format {formats} to {fpath}")
             ydl_optssx = {
                 "format": formats,
                 "outtmpl": fpath,
@@ -378,11 +381,11 @@ class YouTubeAPI:
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
             x.download([link])
-            LOGGER.debug("Song + video download completed")
+            logger.debug("Song + video download completed")
 
         def song_audio_dl():
             fpath = f"downloads/{title}.%(ext)s"
-            LOGGER.debug(f"Starting song audio download to {fpath}")
+            logger.debug(f"Starting song audio download to {fpath}")
             ydl_optssx = {
                 "format": format_id,
                 "outtmpl": fpath,
@@ -402,25 +405,25 @@ class YouTubeAPI:
             }
             x = yt_dlp.YoutubeDL(ydl_optssx)
             x.download([link])
-            LOGGER.debug("Song audio download completed")
+            logger.debug("Song audio download completed")
 
         if songvideo:
             await loop.run_in_executor(None, song_video_dl)
             fpath = f"downloads/{title}.mp4"
-            LOGGER.debug(f"Song video download finished: {fpath}")
+            logger.debug(f"Song video download finished: {fpath}")
             return fpath
         elif songaudio:
             await loop.run_in_executor(None, song_audio_dl)
             fpath = f"downloads/{title}.mp3"
-            LOGGER.debug(f"Song audio download finished: {fpath}")
+            logger.debug(f"Song audio download finished: {fpath}")
             return fpath
         elif video:
             if await is_on_off(1):
                 direct = True
-                LOGGER.debug("Direct video download enabled")
+                logger.debug("Direct video download enabled")
                 downloaded_file = await loop.run_in_executor(None, video_dl)
             else:
-                LOGGER.debug("Direct video download disabled, fetching URLs")
+                logger.debug("Direct video download disabled, fetching URLs")
                 proc = await asyncio.create_subprocess_exec(
                     "yt-dlp",
                     "--cookies", await cookie_txt_file(),
@@ -434,22 +437,22 @@ class YouTubeAPI:
                 if stdout:
                     downloaded_file = stdout.decode().split("\n")
                     direct = False
-                    LOGGER.debug("Fetched download URLs directly")
+                    logger.debug("Fetched download URLs directly")
                 else:
                     file_size = await check_file_size(link)
                     if not file_size:
-                        LOGGER.warning("File size unknown, aborting download")
+                        logger.warning("File size unknown, aborting download")
                         return None
                     total_size_mb = file_size / (1024 * 1024)
                     if total_size_mb > 500:
-                        LOGGER.warning(f"File size {total_size_mb:.2f} MB exceeds limit, skipping download")
+                        logger.warning(f"File size {total_size_mb:.2f} MB exceeds limit, skipping download")
                         return None
                     direct = True
-                    LOGGER.debug("File size within limit, proceeding with direct video download")
+                    logger.debug("File size within limit, proceeding with direct video download")
                     downloaded_file = await loop.run_in_executor(None, video_dl)
         else:
             direct = True
-            LOGGER.debug("Downloading audio only")
+            logger.debug("Downloading audio only")
             downloaded_file = await loop.run_in_executor(None, audio_dl)
-        LOGGER.debug(f"Download finished: {downloaded_file}, direct={direct}")
+        logger.debug(f"Download finished: {downloaded_file}, direct={direct}")
         return downloaded_file, direct
