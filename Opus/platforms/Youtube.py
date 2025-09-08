@@ -18,6 +18,7 @@ from Opus.utils.formatters import time_to_seconds
 from Opus import LOGGER
 
 # Ensuring logger is an instance, not a function
+logger = LOGGER("YoutubeAPI")  # or another suitable name string
 
 _cookie_cache = None
 
