@@ -7,7 +7,7 @@ from io import BytesIO
 from PIL import Image
 
 from config import seconds_to_time
-from VenomX.utils.decorators import asyncify
+from Opus.utils.decorators import asyncify
 
 
 class Saavn:
