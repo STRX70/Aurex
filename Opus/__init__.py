@@ -17,6 +17,7 @@ userbot = Userbot()
 
 
 from .platforms import *
+from .platforms import AppleAPI, CarbonAPI, SoundAPI, SpotifyAPI, RessoAPI, TeleAPI, YouTubeAPI, Saavn as PlaTForms
 
 Apple = AppleAPI()
 Carbon = CarbonAPI()
@@ -26,4 +27,18 @@ Resso = RessoAPI()
 Telegram = TeleAPI()
 YouTube = YouTubeAPI()
 JioSavan = Saavn()
+
+
+class PlaTForms:
+    def __init__(self):
+        self.apple = Apple()
+        self.carbon = Carbon()
+        self.saavn = Saavn()
+        self.resso = Resso()
+        self.soundcloud = SoundCloud()
+        self.spotify = Spotify()
+        self.telegram = Telegram()
+        self.youtube = YouTube()
+
+Platform = PlaTForms()
 
