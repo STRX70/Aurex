@@ -79,3 +79,8 @@ lyrical = {}
 votemode = {}
 autoclean = []
 confirmer = {}
+
+def seconds_to_time(seconds):
+    minutes = seconds // 60
+    remaining_seconds = seconds % 60
+    return f"{minutes:02d}:{remaining_seconds:02d}"
