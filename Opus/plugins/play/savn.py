@@ -6,7 +6,6 @@ from pyrogram.types import InlineKeyboardMarkup, Message
 
 import config
 from config import BANNED_USERS, lyrical
-from strings import command
 from Opus import app, LOGGER, Platform
 from Opus.utils import seconds_to_min, time_to_seconds
 from Opus.utils.jdatabase import is_video_allowed
@@ -24,10 +23,7 @@ from Opus.utils.stream.stream import stream
 
 
 @app.on_message(
-    command(
-        "saavn",
-        prefixes=["/", "!", "%", ",", "@", "#"],
-    )
+    filters.command("saavn", prefixes=["/", "!", "%", ",", "@", "#"])
     & filters.group
     & ~BANNED_USERS
 )
