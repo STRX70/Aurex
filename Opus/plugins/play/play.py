@@ -22,7 +22,7 @@ from Opus.utils.logger import play_logs
 from Opus.utils.stream.stream import stream
 
 
-app.on_message(
+@app.on_message(
     filters.command("play", prefixes=["/", "!", "%", ",", "@", "#"])
     & filters.group
     & ~BANNED_USERS
