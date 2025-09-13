@@ -16,9 +16,18 @@ userbot = Userbot()
 
 
 
-from .platforms import *
-from .platforms import * as PlaTForms
+from .platforms import (
+    AppleAPI,
+    CarbonAPI,
+    SoundAPI,
+    SpotifyAPI,
+    RessoAPI,
+    TeleAPI,
+    YouTubeAPI,
+    Saavn,
+)
 
+# create instances
 Apple = AppleAPI()
 Carbon = CarbonAPI()
 SoundCloud = SoundAPI()
@@ -28,17 +37,16 @@ Telegram = TeleAPI()
 YouTube = YouTubeAPI()
 JioSavan = Saavn()
 
-
+# wrapper class
 class PlaTForms:
     def __init__(self):
-        self.apple = Apple()
-        self.carbon = Carbon()
-        self.saavn = Saavn()
-        self.resso = Resso()
-        self.soundcloud = SoundCloud()
-        self.spotify = Spotify()
-        self.telegram = Telegram()
-        self.youtube = YouTube()
+        self.apple = Apple
+        self.carbon = Carbon
+        self.saavn = JioSavan
+        self.resso = Resso
+        self.soundcloud = SoundCloud
+        self.spotify = Spotify
+        self.telegram = Telegram
+        self.youtube = YouTube
 
 Platform = PlaTForms()
-
