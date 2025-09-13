@@ -1,5 +1,6 @@
 name : 🇺🇸 English
 
+saavn_1: "😞 Sorry! Currently, the bot is unable to play the Saavn Podcast URL."
 
 general_1 : "<blockquote>» ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ's ᴍᴇssᴀɢᴇ ᴏʀ ɢɪᴠᴇ ᴜsᴇʀɴᴀᴍᴇ/ᴜsᴇʀ ɪᴅ.</blockquote>"
 general_2 : "<blockquote>» sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ ᴡʜɪʟᴇ ᴘʀᴏᴄᴇssɪɴɢ ʏᴏᴜʀ ǫᴜᴇʀʏ.</blockquote>\n\n<blockquote>ᴇxᴄᴇᴘᴛɪᴏɴ : <code>{0}</code></blockquote>"
