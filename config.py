@@ -73,6 +73,7 @@ SPOTIFY_ALBUM_IMG_URL = getenv("SPOTIFY_ALBUM_IMG_URL", "https://envs.sh/Olk.jpg
 SPOTIFY_PLAYLIST_IMG_URL = getenv("SPOTIFY_PLAYLIST_IMG_URL", "https://envs.sh/Olk.jpg")
 
 BANNED_USERS = filters.user()
+TEMP_DB_FOLDER = "tempdb"
 adminlist = {}
 lyrical = {}
 votemode = {}
