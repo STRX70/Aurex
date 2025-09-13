@@ -6,7 +6,8 @@ from pyrogram.types import InlineKeyboardMarkup, Message
 
 import config
 from config import BANNED_USERS, lyrical
-from Opus import app, LOGGER, Platform
+from Opus import app, LOGGER
+from Opus import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, 
 from Opus.utils import seconds_to_min, time_to_seconds
 from Opus.utils.jdatabase import is_video_allowed
 from Opus.utils.decorators.play import PlayWrapper
