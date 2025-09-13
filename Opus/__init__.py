@@ -16,6 +16,7 @@ userbot = Userbot()
 
 
 from .platforms import *
+from .platforms import PlaTForms
 
 Apple = AppleAPI()
 Carbon = CarbonAPI()
@@ -24,3 +25,5 @@ Spotify = SpotifyAPI()
 Resso = RessoAPI()
 Telegram = TeleAPI()
 YouTube = YouTubeAPI()
+
+Platform = PlaTForms()
