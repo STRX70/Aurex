@@ -6,7 +6,7 @@ import yt_dlp
 from io import BytesIO
 from PIL import Image
 
-from config import seconds_to_time
+from Opus.utils import seconds_to_time
 from Opus.utils.decorators import asyncify
 
 
