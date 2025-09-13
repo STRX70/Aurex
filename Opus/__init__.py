@@ -17,7 +17,7 @@ userbot = Userbot()
 
 
 from .platforms import *
-from .platforms import AppleAPI, CarbonAPI, SoundAPI, SpotifyAPI, RessoAPI, TeleAPI, YouTubeAPI, Saavn as PlaTForms
+from .platforms import * as PlaTForms
 
 Apple = AppleAPI()
 Carbon = CarbonAPI()
